@@ -3,7 +3,7 @@ import asyncio
 from conftest import CAMPAIGN, make_contacts
 
 from dispatcher.db import load_contacts
-from dispatcher.dispatcher import dispatch_attempt, run
+from dispatcher.dispatcher import dispatch_attempt, run_campaign
 
 
 def test_concurrent_duplicate_dispatch_calls_provider_once(conn, fake_provider):
@@ -47,7 +47,7 @@ def test_duplicate_contact_in_cohort_runs_once(conn, fake_provider):
     cohort = make_contacts(1) * 2                        # same contact listed twice
 
     contacts = load_contacts(conn, CAMPAIGN, cohort)
-    asyncio.run(run(contacts, 5, conn, CAMPAIGN, 3))
+    asyncio.run(run_campaign(contacts, 5, conn, CAMPAIGN, 3))
 
     assert len(contacts) == 1
     assert len(provider.calls) == 1

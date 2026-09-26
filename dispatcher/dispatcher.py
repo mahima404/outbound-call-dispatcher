@@ -39,17 +39,19 @@ async def run_contact(contact, semaphore, stats, conn, campaign_id, max_attempts
         action, value = next_action(disposition, attempt_number, busy_retries_used, max_attempts)
 
         if action == "done":
-            finalize_contact(conn, campaign_id, contact["contact_id"], value, attempt_number)
-            return value                # final status
+            final_status = value
+            finalize_contact(conn, campaign_id, contact["contact_id"], final_status, attempt_number)
+            return final_status
 
         # action == "retry": wait OUTSIDE the semaphore, so no channel is held
+        delay_seconds = value
         if disposition == "busy":
             busy_retries_used += 1
-        await asyncio.sleep(value)
+        await asyncio.sleep(delay_seconds)
         attempt_number += 1
 
 
-async def run(contacts, max_concurrency, conn, campaign_id, max_attempts):
+async def run_campaign(contacts, max_concurrency, conn, campaign_id, max_attempts):
     semaphore = asyncio.Semaphore(max_concurrency)
     stats = {"in_flight": 0, "peak_in_flight": 0, "duplicates_rejected": 0}
     results = await asyncio.gather(*(run_contact(c, semaphore, stats, conn, campaign_id, max_attempts) for c in contacts))

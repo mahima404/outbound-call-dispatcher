@@ -5,14 +5,14 @@ from conftest import CAMPAIGN, make_contacts
 
 import dispatcher.retry as retry_module
 from dispatcher.db import load_contacts
-from dispatcher.dispatcher import run
+from dispatcher.dispatcher import run_campaign
 from dispatcher.retry import backoff_delay
 
 
 def run_one_contact(conn, max_attempts=3):
     """Runs a single contact; returns its contacts row and its attempt rows."""
     contacts = load_contacts(conn, CAMPAIGN, make_contacts(1))
-    asyncio.run(run(contacts, 5, conn, CAMPAIGN, max_attempts))
+    asyncio.run(run_campaign(contacts, 5, conn, CAMPAIGN, max_attempts))
     contact = conn.execute("SELECT final_status, attempt_count FROM contacts").fetchone()
     attempts = conn.execute("SELECT * FROM call_attempts ORDER BY attempt_number").fetchall()
     return contact, attempts
