@@ -1,5 +1,5 @@
+"""Answered contacts / unique contacts dispatched (had at least one completed call)."""
 def connection_rate(conn, campaign_id):
-    """Answered contacts / unique contacts dispatched (had at least one completed call)."""
     dispatched = conn.execute(
         "SELECT COUNT(DISTINCT contact_id) FROM call_attempts"
         " WHERE campaign_id = ? AND status = 'completed'",
@@ -12,9 +12,8 @@ def connection_rate(conn, campaign_id):
     rate = answered / dispatched if dispatched else 0.0
     return answered, dispatched, rate
 
-
+"""Count and % of every completed attempt, per disposition."""
 def disposition_breakdown(conn, campaign_id):
-    """Count and % of every completed attempt, per disposition."""
     rows = conn.execute(
         "SELECT disposition, COUNT(*) AS n FROM call_attempts"
         " WHERE campaign_id = ? AND status = 'completed'"
@@ -24,18 +23,16 @@ def disposition_breakdown(conn, campaign_id):
     total = sum(r["n"] for r in rows)
     return [(r["disposition"], r["n"], r["n"] / total) for r in rows], total
 
-
+"""Average attempts for contacts that were answered or exhausted retries."""
 def avg_attempts_to_resolution(conn, campaign_id):
-    """Average attempts for contacts that were answered or exhausted retries."""
     return conn.execute(
         "SELECT AVG(attempt_count) FROM contacts"
         " WHERE campaign_id = ? AND final_status IN ('answered', 'exhausted')",
         (campaign_id,),
     ).fetchone()[0]
 
-
+"""For answered contacts: when the answered call ended, minus when attempt 1 was claimed."""
 def avg_time_to_first_connect(conn, campaign_id):
-    """For answered contacts: when the answered call ended, minus when attempt 1 was claimed."""
     return conn.execute(
         """
         SELECT AVG(answered.ended_at - first.claimed_at)

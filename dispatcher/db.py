@@ -59,7 +59,7 @@ def load_contacts(conn, campaign_id, contacts):
             "INSERT OR IGNORE INTO contacts (campaign_id, contact_id, phone_number) VALUES (?, ?, ?)",
             (campaign_id, c["contact_id"], c["phone_number"]),
         )
-        if cur.rowcount == 1:          # 1 = inserted, 0 = already existed
+        if cur.rowcount == 1: 
             inserted.append(c)
     return inserted
 
